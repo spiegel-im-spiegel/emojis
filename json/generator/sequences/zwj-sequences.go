@@ -1,10 +1,8 @@
-package data
+package sequences
 
 import (
 	"bufio"
 	"io"
-	"os"
-	"strconv"
 	"strings"
 
 	emj "github.com/kyokomi/emoji/v2"
@@ -12,26 +10,22 @@ import (
 	"github.com/spiegel-im-spiegel/fetch"
 )
 
-const (
-	emojiVariationSequencesFile = "https://www.unicode.org/Public/UCD/latest/ucd/emoji/emoji-variation-sequences.txt"
-	textPresentationSelector    = 0xFE0E
-	emojiPresentationSelector   = 0xFE0F
-)
+const emojiZwjSequencesFile = "https://www.unicode.org/Public/emoji/13.1/emoji-zwj-sequences.txt"
 
-func variationListFile() (io.ReadCloser, error) {
-	u, err := fetch.URL(emojiVariationSequencesFile)
+func zwjSequencesListFile() (io.ReadCloser, error) {
+	u, err := fetch.URL(emojiZwjSequencesFile)
 	if err != nil {
-		return nil, errs.Wrap(err, errs.WithContext("url", emojiVariationSequencesFile))
+		return nil, errs.Wrap(err, errs.WithContext("url", emojiZwjSequencesFile))
 	}
 	resp, err := fetch.New().Get(u)
 	if err != nil {
-		return nil, errs.Wrap(err, errs.WithContext("url", emojiVariationSequencesFile))
+		return nil, errs.Wrap(err, errs.WithContext("url", emojiZwjSequencesFile))
 	}
 	return resp.Body(), nil
 }
 
-func parseVariation(list map[rune]EmojiData) (map[rune]EmojiData, error) {
-	r, err := variationListFile()
+func parseZwjSequences(list map[string]EmojiSequence) (map[string]EmojiSequence, error) {
+	r, err := zwjSequencesListFile()
 	if err != nil {
 		return list, errs.Wrap(err)
 	}
@@ -44,51 +38,21 @@ func parseVariation(list map[rune]EmojiData) (map[rune]EmojiData, error) {
 			continue
 		}
 		flds := strings.Split(text, ";")
-		if len(flds) < 1 {
+		if len(flds) < 2 {
 			continue
 		}
-		fst, snd, err := getRuneSequence(flds[0])
+		seq, err := getRuneSequence(flds[0])
 		if err != nil {
 			continue
 		}
-		ed, ok := list[fst]
-		if !ok {
-			continue
-		}
-		sq := string([]rune{fst, snd})
-		switch snd {
-		case textPresentationSelector:
-			ed.VariationTextStyle = sq
-		case emojiPresentationSelector:
-			ed.VariationEmojiStyle = sq
-		}
-		sc := emj.RevCodeMap()[sq]
-		if len(sc) > 0 {
-			ed.Shortcodes = append(ed.Shortcodes, sc...)
-		}
-		list[fst] = ed
+		list[seq] = EmojiSequence{Sequence: seq, Name: getDescription(flds[2]), SequenceType: getSequenceType(flds[1]), Shortcodes: emj.RevCodeMap()[seq]}
+
 	}
 
 	if err := scanner.Err(); err != nil {
 		return nil, errs.Wrap(err)
 	}
 	return list, nil
-}
-
-func getRuneSequence(s string) (rune, rune, error) {
-	flds := strings.Split(strings.TrimSpace(s), " ")
-	if len(flds) < 2 {
-		return 0, 0, os.ErrInvalid
-	}
-	fromR, err := strconv.ParseUint(flds[0], 16, 32)
-	if err != nil {
-		return 0, 0, os.ErrInvalid
-	}
-	toR, err := strconv.ParseUint(flds[1], 16, 32)
-	if err != nil {
-		return 0, 0, os.ErrInvalid
-	}
-	return rune(fromR), rune(toR), nil
 }
 
 /* MIT License

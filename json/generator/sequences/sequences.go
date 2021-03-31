@@ -1,41 +1,41 @@
-package data
+package sequences
 
 import (
 	"bufio"
 	"io"
-	"os"
-	"strconv"
 	"strings"
 
 	emj "github.com/kyokomi/emoji/v2"
+	"github.com/spiegel-im-spiegel/emojis/unames"
 	"github.com/spiegel-im-spiegel/errs"
 	"github.com/spiegel-im-spiegel/fetch"
 )
 
-const (
-	emojiVariationSequencesFile = "https://www.unicode.org/Public/UCD/latest/ucd/emoji/emoji-variation-sequences.txt"
-	textPresentationSelector    = 0xFE0E
-	emojiPresentationSelector   = 0xFE0F
-)
+const emojiSequencesFile = "https://www.unicode.org/Public/emoji/13.1/emoji-sequences.txt"
 
-func variationListFile() (io.ReadCloser, error) {
-	u, err := fetch.URL(emojiVariationSequencesFile)
+func sequencesListFile() (io.ReadCloser, error) {
+	u, err := fetch.URL(emojiSequencesFile)
 	if err != nil {
-		return nil, errs.Wrap(err, errs.WithContext("url", emojiVariationSequencesFile))
+		return nil, errs.Wrap(err, errs.WithContext("url", emojiSequencesFile))
 	}
 	resp, err := fetch.New().Get(u)
 	if err != nil {
-		return nil, errs.Wrap(err, errs.WithContext("url", emojiVariationSequencesFile))
+		return nil, errs.Wrap(err, errs.WithContext("url", emojiSequencesFile))
 	}
 	return resp.Body(), nil
 }
 
-func parseVariation(list map[rune]EmojiData) (map[rune]EmojiData, error) {
-	r, err := variationListFile()
+func parseSequences(list map[string]EmojiSequence) (map[string]EmojiSequence, error) {
+	r, err := sequencesListFile()
 	if err != nil {
 		return list, errs.Wrap(err)
 	}
 	defer r.Close()
+
+	names, err := unames.New()
+	if err != nil {
+		return list, errs.Wrap(err)
+	}
 
 	scanner := bufio.NewScanner(r)
 	for scanner.Scan() {
@@ -44,51 +44,36 @@ func parseVariation(list map[rune]EmojiData) (map[rune]EmojiData, error) {
 			continue
 		}
 		flds := strings.Split(text, ";")
-		if len(flds) < 1 {
+		if len(flds) < 2 {
 			continue
 		}
-		fst, snd, err := getRuneSequence(flds[0])
-		if err != nil {
-			continue
+		runes := strings.TrimSpace(flds[0])
+		if strings.Contains(runes, "..") || !strings.Contains(runes, " ") {
+			from, to, err := getRuneRange(runes)
+			if err != nil {
+				continue
+			}
+			for r := from; r <= to; r++ {
+				name := names.Name(r)
+				seq := string([]rune{r})
+				if len(name) > 0 {
+					list[seq] = EmojiSequence{Sequence: seq, Name: name, SequenceType: getSequenceType(flds[1]), Shortcodes: emj.RevCodeMap()[seq]}
+				}
+			}
+		} else {
+			seq, err := getRuneSequence(runes)
+			if err != nil {
+				continue
+			}
+			list[seq] = EmojiSequence{Sequence: seq, Name: getDescription(flds[2]), SequenceType: getSequenceType(flds[1]), Shortcodes: emj.RevCodeMap()[seq]}
 		}
-		ed, ok := list[fst]
-		if !ok {
-			continue
-		}
-		sq := string([]rune{fst, snd})
-		switch snd {
-		case textPresentationSelector:
-			ed.VariationTextStyle = sq
-		case emojiPresentationSelector:
-			ed.VariationEmojiStyle = sq
-		}
-		sc := emj.RevCodeMap()[sq]
-		if len(sc) > 0 {
-			ed.Shortcodes = append(ed.Shortcodes, sc...)
-		}
-		list[fst] = ed
+
 	}
 
 	if err := scanner.Err(); err != nil {
 		return nil, errs.Wrap(err)
 	}
 	return list, nil
-}
-
-func getRuneSequence(s string) (rune, rune, error) {
-	flds := strings.Split(strings.TrimSpace(s), " ")
-	if len(flds) < 2 {
-		return 0, 0, os.ErrInvalid
-	}
-	fromR, err := strconv.ParseUint(flds[0], 16, 32)
-	if err != nil {
-		return 0, 0, os.ErrInvalid
-	}
-	toR, err := strconv.ParseUint(flds[1], 16, 32)
-	if err != nil {
-		return 0, 0, os.ErrInvalid
-	}
-	return rune(fromR), rune(toR), nil
 }
 
 /* MIT License
