@@ -8,7 +8,9 @@ import (
 	"strings"
 
 	emj "github.com/kyokomi/emoji/v2"
-	"github.com/spiegel-im-spiegel/emojis/unames"
+	"github.com/spiegel-im-spiegel/emojis/json"
+	"github.com/spiegel-im-spiegel/emojis/json/generator/unames"
+	"github.com/spiegel-im-spiegel/emojis/types"
 	"github.com/spiegel-im-spiegel/errs"
 	"github.com/spiegel-im-spiegel/fetch"
 )
@@ -27,7 +29,7 @@ func dataListFile() (io.ReadCloser, error) {
 	return resp.Body(), nil
 }
 
-func parseData(list map[rune]EmojiData) (map[rune]EmojiData, error) {
+func parseData(list map[rune]json.EmojiData) (map[rune]json.EmojiData, error) {
 	r, err := dataListFile()
 	if err != nil {
 		return list, errs.Wrap(err)
@@ -58,7 +60,11 @@ func parseData(list map[rune]EmojiData) (map[rune]EmojiData, error) {
 			if len(name) > 0 {
 				ed, ok := list[r]
 				if !ok {
-					ed = EmojiData{Code: r, Name: name, Shortcodes: emj.RevCodeMap()[string([]rune{r})]}
+					ed = json.EmojiData{
+						Code:       r,
+						Name:       name,
+						Shortcodes: emj.RevCodeMap()[string([]rune{r})],
+					}
 				}
 				list[r] = setProperty(ed, flds[1])
 			}
@@ -95,29 +101,29 @@ func getRuneRange(s string) (rune, rune, error) {
 	return rune(fromR), rune(toR), nil
 }
 
-func setProperty(e EmojiData, s string) EmojiData {
-	var prop string
+func setProperty(e json.EmojiData, s string) json.EmojiData {
+	var prop types.SequencesType
 	if strings.Contains(s, "#") {
 		flds := strings.Split(s, "#")
 		if len(flds) < 1 {
 			return e
 		}
-		prop = strings.TrimSpace(flds[0])
+		prop = types.GetSequenceType(strings.TrimSpace(flds[0]))
 	} else {
-		prop = strings.TrimSpace(s)
+		prop = types.GetSequenceType(strings.TrimSpace(s))
 	}
-	switch {
-	case strings.EqualFold(prop, "Emoji"):
+	switch prop {
+	case types.TypeEmojiCharacter:
 		e.Emoji = true
-	case strings.EqualFold(prop, "Emoji_Presentation"):
+	case types.TypeEmojiPresentation:
 		e.EmojiPresentation = true
-	case strings.EqualFold(prop, "Emoji_Modifier"):
+	case types.TypeEmojiModifier:
 		e.EmojiModifier = true
-	case strings.EqualFold(prop, "Emoji_Modifier_Base"):
+	case types.TypeEmojiModifierBase:
 		e.EmojiModifierBase = true
-	case strings.EqualFold(prop, "Emoji_Component"):
+	case types.TypeEmojiComponent:
 		e.EmojiComponent = true
-	case strings.EqualFold(prop, "Extended_Pictographic"):
+	case types.TypeExtendedPictographic:
 		e.ExtendedPictographic = true
 	}
 	return e

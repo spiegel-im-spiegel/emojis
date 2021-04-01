@@ -1,54 +1,21 @@
-package sequences
+package main
 
 import (
+	"fmt"
 	"os"
-	"strconv"
-	"strings"
+
+	"github.com/spiegel-im-spiegel/emojis/json/generator/unames/json"
+	"github.com/spiegel-im-spiegel/emojis/json/generator/unames/json/generator/namelist"
 )
 
-func getRuneRange(s string) (rune, rune, error) {
-	var from, to string
-	if strings.Contains(s, "..") {
-		flds := strings.Split(s, "..")
-		if len(flds) < 2 {
-			return 0, 0, os.ErrInvalid
-		}
-		from = strings.TrimSpace(flds[0])
-		to = strings.TrimSpace(flds[1])
-	} else {
-		from = strings.TrimSpace(s)
-		to = from
-	}
-	fromR, err := strconv.ParseUint(from, 16, 32)
+func main() {
+	list, err := namelist.Parse()
 	if err != nil {
-		return 0, 0, os.ErrInvalid
+		fmt.Fprintln(os.Stderr, err)
 	}
-	toR, err := strconv.ParseUint(to, 16, 32)
-	if err != nil {
-		return 0, 0, os.ErrInvalid
+	if err := json.EncodeUnicodeName(os.Stdout, list); err != nil {
+		fmt.Fprintln(os.Stderr, err)
 	}
-	return rune(fromR), rune(toR), nil
-}
-
-func getRuneSequence(s string) (string, error) {
-	flds := strings.Fields(s)
-	runes := []rune{}
-	for _, s := range flds {
-		r, err := strconv.ParseUint(s, 16, 32)
-		if err != nil {
-			return "", os.ErrInvalid
-		}
-		runes = append(runes, rune(r))
-	}
-	return string(runes), nil
-}
-
-func getDescription(s string) string {
-	flds := strings.Split(s, "#")
-	if len(flds) == 0 {
-		return ""
-	}
-	return strings.ReplaceAll(strings.TrimSpace(flds[0]), `\x{23}`, "#")
 }
 
 /* MIT License

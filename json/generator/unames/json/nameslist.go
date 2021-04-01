@@ -1,27 +1,33 @@
-// +build run
-
-package main
+package json
 
 import (
-	"fmt"
-	"os"
+	jsonorg "encoding/json"
+	"io"
 
-	"github.com/spiegel-im-spiegel/emojis/unames"
+	"github.com/spiegel-im-spiegel/errs"
 )
 
-func main() {
-	nm, err := unames.New()
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
+// UnicodeName is Unicode name info
+type UnicodeName struct {
+	Code rune
+	Name string
+}
+
+// EncodeUnicodeName outputs []UnicodeName data with JSON format.
+func EncodeUnicodeName(w io.Writer, ulist []UnicodeName) error {
+	if err := jsonorg.NewEncoder(w).Encode(ulist); err != nil {
+		return errs.Wrap(err)
 	}
-	var r rune = 0x10001
-	for ; r < 0x1ffff; r++ {
-		name := nm.Name(r)
-		if len(name) == 0 {
-			break
-		}
-		fmt.Printf("%U: %s\n", r, name)
+	return nil
+}
+
+// DecodeUnicodeName returns []UnicodeName data from JSON format text.
+func DecodeUnicodeName(r io.Reader) ([]UnicodeName, error) {
+	list := []UnicodeName{}
+	if err := jsonorg.NewDecoder(r).Decode(&list); err != nil {
+		return list, errs.Wrap(err)
 	}
+	return list, nil
 }
 
 /* MIT License

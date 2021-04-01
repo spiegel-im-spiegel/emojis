@@ -1,39 +1,36 @@
-package unames
+package json
 
 import (
-	_ "embed"
-	"encoding/json"
+	jsonorg "encoding/json"
+	"io"
 
+	"github.com/spiegel-im-spiegel/emojis/types"
 	"github.com/spiegel-im-spiegel/errs"
 )
 
-//go:embed json/nameslist.json
-var jsonText []byte
-
-// NamesMap is class Unicode name list.
-type NamesMap struct {
-	nmap map[rune]string
+// EmojiSequence is entity of "emoji-sequences.txt" and "emoji-zwj-sequences.txt".
+type EmojiSequence struct {
+	Sequence     string
+	Name         string
+	SequenceType types.SequencesType
+	Shortcodes   []string `json:",omitempty"`
 }
 
-// New returns a new NamesMap instance.
-func New() (NamesMap, error) {
-	list := []struct {
-		Code rune
-		Name string
-	}{}
-	if err := json.Unmarshal(jsonText, &list); err != nil {
-		return NamesMap{}, errs.Wrap(err)
+// EncodeEmojiSequence outputs []EmojiData data with JSON format.
+func EncodeEmojiSequence(w io.Writer, list []EmojiSequence) error {
+	if err := jsonorg.NewEncoder(w).Encode(list); err != nil {
+		return errs.Wrap(err)
 	}
-	nmap := map[rune]string{}
-	for _, n := range list {
-		nmap[n.Code] = n.Name
-	}
-	return NamesMap{nmap}, nil
+	return nil
 }
 
-// Name returns string of name for Unicode point.
-func (nm NamesMap) Name(r rune) string {
-	return nm.nmap[r]
+// DecodeEmojiSequence returns []EmojiData data from JSON format text.
+func DecodeEmojiSequence(r io.Reader) ([]EmojiSequence, error) {
+	list := []EmojiSequence{}
+	if err := jsonorg.NewDecoder(r).Decode(&list); err != nil {
+		return list, errs.Wrap(err)
+	}
+	return list, nil
 }
 
 /* MIT License

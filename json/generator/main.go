@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/spiegel-im-spiegel/emojis/json"
 	"github.com/spiegel-im-spiegel/emojis/json/generator/data"
 	"github.com/spiegel-im-spiegel/emojis/json/generator/sequences"
 )
@@ -14,7 +15,7 @@ func outputEmojiData() {
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 	}
-	if err := data.EncodeJSON(os.Stdout, list); err != nil {
+	if err := json.EncodeEmojiData(os.Stdout, list); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 	}
 }
@@ -24,7 +25,7 @@ func outputEmojiSequencesData() {
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 	}
-	if err := sequences.EncodeJSON(os.Stdout, list); err != nil {
+	if err := json.EncodeEmojiSequence(os.Stdout, list); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 	}
 }

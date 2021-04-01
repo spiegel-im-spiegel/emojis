@@ -1,57 +1,33 @@
 package data
 
 import (
-	"encoding/json"
-	"io"
 	"sort"
 
+	"github.com/spiegel-im-spiegel/emojis/json"
 	"github.com/spiegel-im-spiegel/errs"
 )
 
-// EmojiData is entity of "emoji-data.txt" and "emoji-variation-sequences.txt".
-type EmojiData struct {
-	Code                 rune
-	Name                 string
-	Emoji                bool     `json:",omitempty"`
-	EmojiPresentation    bool     `json:"Emoji_Presentation,omitempty"`
-	EmojiModifier        bool     `json:"Emoji_Modifier,omitempty"`
-	EmojiModifierBase    bool     `json:"Emoji_Modifier_Base,omitempty"`
-	EmojiComponent       bool     `json:"Emoji_Component,omitempty"`
-	ExtendedPictographic bool     `json:"Extended_Pictographic,omitempty"`
-	VariationTextStyle   string   `json:",omitempty"`
-	VariationEmojiStyle  string   `json:",omitempty"`
-	Shortcodes           []string `json:",omitempty"`
-}
-
 // Parse returns EmojiData list.
-func Parse() (map[rune]EmojiData, error) {
-	list := map[rune]EmojiData{}
+func Parse() ([]json.EmojiData, error) {
+	emap := map[rune]json.EmojiData{}
 	var err error
-	list, err = parseData(list)
+	emap, err = parseData(emap)
 	if err != nil {
-		return list, errs.Wrap(err)
+		return nil, errs.Wrap(err)
 	}
-	list, err = parseVariation(list)
+	emap, err = parseVariation(emap)
 	if err != nil {
-		return list, errs.Wrap(err)
+		return nil, errs.Wrap(err)
 	}
-	return list, nil
-}
 
-// EncodeJSON outputs emoji-data with JSON format.
-func EncodeJSON(w io.Writer, emap map[rune]EmojiData) error {
-	list := []EmojiData{}
+	list := []json.EmojiData{}
 	for _, v := range emap {
 		list = append(list, v)
 	}
 	sort.Slice(list, func(i, j int) bool {
 		return list[i].Code < list[j].Code
 	})
-	enc := json.NewEncoder(w)
-	if err := enc.Encode(list); err != nil {
-		return errs.Wrap(err)
-	}
-	return nil
+	return list, nil
 }
 
 /* MIT License

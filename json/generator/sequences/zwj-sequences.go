@@ -6,6 +6,8 @@ import (
 	"strings"
 
 	emj "github.com/kyokomi/emoji/v2"
+	"github.com/spiegel-im-spiegel/emojis/json"
+	"github.com/spiegel-im-spiegel/emojis/types"
 	"github.com/spiegel-im-spiegel/errs"
 	"github.com/spiegel-im-spiegel/fetch"
 )
@@ -24,7 +26,7 @@ func zwjSequencesListFile() (io.ReadCloser, error) {
 	return resp.Body(), nil
 }
 
-func parseZwjSequences(list map[string]EmojiSequence) (map[string]EmojiSequence, error) {
+func parseZwjSequences(list map[string]json.EmojiSequence) (map[string]json.EmojiSequence, error) {
 	r, err := zwjSequencesListFile()
 	if err != nil {
 		return list, errs.Wrap(err)
@@ -45,8 +47,12 @@ func parseZwjSequences(list map[string]EmojiSequence) (map[string]EmojiSequence,
 		if err != nil {
 			continue
 		}
-		list[seq] = EmojiSequence{Sequence: seq, Name: getDescription(flds[2]), SequenceType: getSequenceType(flds[1]), Shortcodes: emj.RevCodeMap()[seq]}
-
+		list[seq] = json.EmojiSequence{
+			Sequence:     seq,
+			Name:         getDescription(flds[2]),
+			SequenceType: types.GetSequenceType(flds[1]),
+			Shortcodes:   emj.RevCodeMap()[seq],
+		}
 	}
 
 	if err := scanner.Err(); err != nil {

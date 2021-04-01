@@ -1,54 +1,32 @@
-package sequences
+package emojis
 
 import (
-	"os"
-	"strconv"
-	"strings"
+	"bytes"
+	_ "embed"
+
+	"github.com/spiegel-im-spiegel/emojis/json"
+	"github.com/spiegel-im-spiegel/errs"
 )
 
-func getRuneRange(s string) (rune, rune, error) {
-	var from, to string
-	if strings.Contains(s, "..") {
-		flds := strings.Split(s, "..")
-		if len(flds) < 2 {
-			return 0, 0, os.ErrInvalid
-		}
-		from = strings.TrimSpace(flds[0])
-		to = strings.TrimSpace(flds[1])
-	} else {
-		from = strings.TrimSpace(s)
-		to = from
-	}
-	fromR, err := strconv.ParseUint(from, 16, 32)
+//go:embed json/emoji-data.json
+var jsonEmojidataText []byte
+
+// NewEmojiCodeList returns list of json.EmojiData data.
+func NewEmojiCodeList() ([]json.EmojiData, error) {
+	list, err := json.DecodeEmojiData(bytes.NewReader(jsonEmojidataText))
 	if err != nil {
-		return 0, 0, os.ErrInvalid
+		return nil, errs.Wrap(err)
 	}
-	toR, err := strconv.ParseUint(to, 16, 32)
-	if err != nil {
-		return 0, 0, os.ErrInvalid
-	}
-	return rune(fromR), rune(toR), nil
+	return list, nil
 }
 
-func getRuneSequence(s string) (string, error) {
-	flds := strings.Fields(s)
-	runes := []rune{}
-	for _, s := range flds {
-		r, err := strconv.ParseUint(s, 16, 32)
-		if err != nil {
-			return "", os.ErrInvalid
-		}
-		runes = append(runes, rune(r))
+// MappingEmojiCode maps json.EmojiData data.
+func MappingEmojiCode(list []json.EmojiData) map[rune]*json.EmojiData {
+	emap := map[rune]*json.EmojiData{}
+	for i := 0; i < len(list); i++ {
+		emap[list[i].Code] = &list[i]
 	}
-	return string(runes), nil
-}
-
-func getDescription(s string) string {
-	flds := strings.Split(s, "#")
-	if len(flds) == 0 {
-		return ""
-	}
-	return strings.ReplaceAll(strings.TrimSpace(flds[0]), `\x{23}`, "#")
+	return emap
 }
 
 /* MIT License
