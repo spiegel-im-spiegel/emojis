@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	emj "github.com/kyokomi/emoji/v2"
+	"github.com/spiegel-im-spiegel/emojis/json"
 	"github.com/spiegel-im-spiegel/errs"
 	"github.com/spiegel-im-spiegel/fetch"
 )
@@ -30,7 +31,7 @@ func variationListFile() (io.ReadCloser, error) {
 	return resp.Body(), nil
 }
 
-func parseVariation(list map[rune]EmojiData) (map[rune]EmojiData, error) {
+func parseVariation(list map[rune]json.EmojiData) (map[rune]json.EmojiData, error) {
 	r, err := variationListFile()
 	if err != nil {
 		return list, errs.Wrap(err)
@@ -59,12 +60,10 @@ func parseVariation(list map[rune]EmojiData) (map[rune]EmojiData, error) {
 		switch snd {
 		case textPresentationSelector:
 			ed.VariationTextStyle = sq
+			ed.ShortcodesVariationText = emj.RevCodeMap()[sq]
 		case emojiPresentationSelector:
 			ed.VariationEmojiStyle = sq
-		}
-		sc := emj.RevCodeMap()[sq]
-		if len(sc) > 0 {
-			ed.Shortcodes = append(ed.Shortcodes, sc...)
+			ed.ShortcodesVariationEmoji = emj.RevCodeMap()[sq]
 		}
 		list[fst] = ed
 	}

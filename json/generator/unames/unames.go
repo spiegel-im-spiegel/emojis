@@ -1,54 +1,37 @@
-package sequences
+package unames
 
 import (
-	"os"
-	"strconv"
-	"strings"
+	"bytes"
+	_ "embed"
+
+	"github.com/spiegel-im-spiegel/emojis/json/generator/unames/json"
+	"github.com/spiegel-im-spiegel/errs"
 )
 
-func getRuneRange(s string) (rune, rune, error) {
-	var from, to string
-	if strings.Contains(s, "..") {
-		flds := strings.Split(s, "..")
-		if len(flds) < 2 {
-			return 0, 0, os.ErrInvalid
-		}
-		from = strings.TrimSpace(flds[0])
-		to = strings.TrimSpace(flds[1])
-	} else {
-		from = strings.TrimSpace(s)
-		to = from
-	}
-	fromR, err := strconv.ParseUint(from, 16, 32)
-	if err != nil {
-		return 0, 0, os.ErrInvalid
-	}
-	toR, err := strconv.ParseUint(to, 16, 32)
-	if err != nil {
-		return 0, 0, os.ErrInvalid
-	}
-	return rune(fromR), rune(toR), nil
+//go:embed json/nameslist.json
+var jsonText []byte
+
+// NamesMap is class Unicode name list.
+type NamesMap struct {
+	nmap map[rune]string
 }
 
-func getRuneSequence(s string) (string, error) {
-	flds := strings.Fields(s)
-	runes := []rune{}
-	for _, s := range flds {
-		r, err := strconv.ParseUint(s, 16, 32)
-		if err != nil {
-			return "", os.ErrInvalid
-		}
-		runes = append(runes, rune(r))
+// New returns a new NamesMap instance.
+func New() (NamesMap, error) {
+	list, err := json.DecodeUnicodeName(bytes.NewReader(jsonText))
+	if err != nil {
+		return NamesMap{}, errs.Wrap(err)
 	}
-	return string(runes), nil
+	nmap := map[rune]string{}
+	for _, n := range list {
+		nmap[n.Code] = n.Name
+	}
+	return NamesMap{nmap}, nil
 }
 
-func getDescription(s string) string {
-	flds := strings.Split(s, "#")
-	if len(flds) == 0 {
-		return ""
-	}
-	return strings.ReplaceAll(strings.TrimSpace(flds[0]), `\x{23}`, "#")
+// Name returns string of name for Unicode point.
+func (nm NamesMap) Name(r rune) string {
+	return nm.nmap[r]
 }
 
 /* MIT License

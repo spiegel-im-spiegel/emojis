@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/spiegel-im-spiegel/emojis/json/generator/unames/json"
 	"github.com/spiegel-im-spiegel/errs"
 	"github.com/spiegel-im-spiegel/fetch"
 )
@@ -24,19 +25,14 @@ func nameListFile() (io.ReadCloser, error) {
 	return resp.Body(), nil
 }
 
-type UnicodeName struct {
-	Code rune
-	Name string
-}
-
-func Parse() ([]UnicodeName, error) {
+func Parse() ([]json.UnicodeName, error) {
 	r, err := nameListFile()
 	if err != nil {
 		return nil, errs.Wrap(err)
 	}
 	defer r.Close()
 
-	list := []UnicodeName{}
+	list := []json.UnicodeName{}
 	scanner := bufio.NewScanner(r)
 	for scanner.Scan() {
 		text := scanner.Text()
@@ -55,7 +51,7 @@ func Parse() ([]UnicodeName, error) {
 		if strings.HasPrefix(name, "<") && strings.HasSuffix(name, ">") {
 			continue
 		}
-		list = append(list, UnicodeName{Code: rune(code), Name: name})
+		list = append(list, json.UnicodeName{Code: rune(code), Name: name})
 	}
 
 	if err := scanner.Err(); err != nil {

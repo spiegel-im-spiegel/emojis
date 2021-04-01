@@ -6,7 +6,9 @@ import (
 	"strings"
 
 	emj "github.com/kyokomi/emoji/v2"
-	"github.com/spiegel-im-spiegel/emojis/unames"
+	"github.com/spiegel-im-spiegel/emojis/json"
+	"github.com/spiegel-im-spiegel/emojis/json/generator/unames"
+	"github.com/spiegel-im-spiegel/emojis/types"
 	"github.com/spiegel-im-spiegel/errs"
 	"github.com/spiegel-im-spiegel/fetch"
 )
@@ -25,7 +27,7 @@ func sequencesListFile() (io.ReadCloser, error) {
 	return resp.Body(), nil
 }
 
-func parseSequences(list map[string]EmojiSequence) (map[string]EmojiSequence, error) {
+func parseSequences(list map[string]json.EmojiSequence) (map[string]json.EmojiSequence, error) {
 	r, err := sequencesListFile()
 	if err != nil {
 		return list, errs.Wrap(err)
@@ -57,7 +59,12 @@ func parseSequences(list map[string]EmojiSequence) (map[string]EmojiSequence, er
 				name := names.Name(r)
 				seq := string([]rune{r})
 				if len(name) > 0 {
-					list[seq] = EmojiSequence{Sequence: seq, Name: name, SequenceType: getSequenceType(flds[1]), Shortcodes: emj.RevCodeMap()[seq]}
+					list[seq] = json.EmojiSequence{
+						Sequence:     seq,
+						Name:         name,
+						SequenceType: types.GetSequenceType(flds[1]),
+						Shortcodes:   emj.RevCodeMap()[seq],
+					}
 				}
 			}
 		} else {
@@ -65,7 +72,12 @@ func parseSequences(list map[string]EmojiSequence) (map[string]EmojiSequence, er
 			if err != nil {
 				continue
 			}
-			list[seq] = EmojiSequence{Sequence: seq, Name: getDescription(flds[2]), SequenceType: getSequenceType(flds[1]), Shortcodes: emj.RevCodeMap()[seq]}
+			list[seq] = json.EmojiSequence{
+				Sequence:     seq,
+				Name:         getDescription(flds[2]),
+				SequenceType: types.GetSequenceType(flds[1]),
+				Shortcodes:   emj.RevCodeMap()[seq],
+			}
 		}
 
 	}

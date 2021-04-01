@@ -1,95 +1,33 @@
 package sequences
 
 import (
-	"encoding/json"
-	"io"
 	"sort"
-	"strconv"
 
+	"github.com/spiegel-im-spiegel/emojis/json"
 	"github.com/spiegel-im-spiegel/errs"
 )
 
-// SequencesType is type of emoji sequence.
-type SequencesType int
-
-const (
-	TypeUnknown SequencesType = iota
-	TypeBasicEmoji
-	TypeEmojiKeycapSequence
-	TypeRGIEmojiFlagSequence
-	TypeRGIEmojiTagSequence
-	TypeRGIEmojiModifierSequence
-	TypeRGIEmojiZWJSequence
-)
-
-var sequencesTypeMap = map[SequencesType]string{
-	TypeBasicEmoji:               "Basic_Emoji",
-	TypeEmojiKeycapSequence:      "Emoji_Keycap_Sequence",
-	TypeRGIEmojiFlagSequence:     "RGI_Emoji_Flag_Sequence",
-	TypeRGIEmojiTagSequence:      "RGI_Emoji_Tag_Sequence",
-	TypeRGIEmojiModifierSequence: "RGI_Emoji_Modifier_Sequence",
-	TypeRGIEmojiZWJSequence:      "RGI_Emoji_ZWJ_Sequence",
-}
-
-func (t SequencesType) String() string {
-	return sequencesTypeMap[t]
-}
-
-//UnmarshalJSON returns result of Unmarshal for json.Unmarshal()
-func (t *SequencesType) UnmarshalJSON(b []byte) error {
-	s, err := strconv.Unquote(string(b))
-	if err != nil {
-		s = string(b)
-	}
-	*t = getSequenceType(s)
-	return nil
-}
-
-//MarshalJSON returns string
-func (t *SequencesType) MarshalJSON() ([]byte, error) {
-	if t == nil {
-		return []byte("\"\""), nil
-	}
-	return []byte(strconv.Quote(t.String())), nil
-}
-
-// EmojiSequence is entity of "emoji-sequences.txt" and "emoji-zwj-sequences.txt".
-type EmojiSequence struct {
-	Sequence     string
-	Name         string
-	SequenceType SequencesType
-	Shortcodes   []string `json:",omitempty"`
-}
-
 // Parse returns EmojiSequence list.
-func Parse() (map[string]EmojiSequence, error) {
-	list := map[string]EmojiSequence{}
+func Parse() ([]json.EmojiSequence, error) {
+	emap := map[string]json.EmojiSequence{}
 	var err error
-	list, err = parseSequences(list)
+	emap, err = parseSequences(emap)
 	if err != nil {
-		return list, errs.Wrap(err)
+		return nil, errs.Wrap(err)
 	}
-	list, err = parseZwjSequences(list)
+	emap, err = parseZwjSequences(emap)
 	if err != nil {
-		return list, errs.Wrap(err)
+		return nil, errs.Wrap(err)
 	}
-	return list, nil
-}
 
-// EncodeJSON outputs EmojiSequence with JSON format.
-func EncodeJSON(w io.Writer, emap map[string]EmojiSequence) error {
-	list := []EmojiSequence{}
+	list := []json.EmojiSequence{}
 	for _, v := range emap {
 		list = append(list, v)
 	}
 	sort.Slice(list, func(i, j int) bool {
 		return list[i].Sequence < list[j].Sequence
 	})
-	enc := json.NewEncoder(w)
-	if err := enc.Encode(list); err != nil {
-		return errs.Wrap(err)
-	}
-	return nil
+	return list, nil
 }
 
 /* MIT License

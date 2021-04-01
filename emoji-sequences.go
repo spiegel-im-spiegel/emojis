@@ -1,22 +1,32 @@
-package main
+package emojis
 
 import (
-	"encoding/json"
-	"fmt"
-	"os"
+	"bytes"
+	_ "embed"
 
-	"github.com/spiegel-im-spiegel/emojis/unames/json/generator/namelist"
+	"github.com/spiegel-im-spiegel/emojis/json"
+	"github.com/spiegel-im-spiegel/errs"
 )
 
-func main() {
-	list, err := namelist.Parse()
+//go:embed json/emoji-sequences.json
+var jsonEmojiSequenceText []byte
+
+// NewEmojiSequenceList returns list of json.EmojiSequence data.
+func NewEmojiSequenceList() ([]json.EmojiSequence, error) {
+	list, err := json.DecodeEmojiSequence(bytes.NewReader(jsonEmojiSequenceText))
 	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
+		return nil, errs.Wrap(err)
 	}
-	enc := json.NewEncoder(os.Stdout)
-	if err := enc.Encode(list); err != nil {
-		fmt.Fprintln(os.Stderr, err)
+	return list, nil
+}
+
+// MappingEmojiSequence maps json.EmojiSequence data.
+func MappingEmojiSequence(list []json.EmojiSequence) map[string]*json.EmojiSequence {
+	emap := map[string]*json.EmojiSequence{}
+	for i := 0; i < len(list); i++ {
+		emap[list[i].Sequence] = &list[i]
 	}
+	return emap
 }
 
 /* MIT License
