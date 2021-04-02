@@ -9,19 +9,17 @@ import (
 
 // EmojiData is entity of "emoji-data.txt" and "emoji-variation-sequences.txt".
 type EmojiData struct {
-	Code                     rune
-	Name                     string
-	Emoji                    bool     `json:",omitempty"`
-	EmojiPresentation        bool     `json:"Emoji_Presentation,omitempty"`
-	EmojiModifier            bool     `json:"Emoji_Modifier,omitempty"`
-	EmojiModifierBase        bool     `json:"Emoji_Modifier_Base,omitempty"`
-	EmojiComponent           bool     `json:"Emoji_Component,omitempty"`
-	ExtendedPictographic     bool     `json:"Extended_Pictographic,omitempty"`
-	VariationTextStyle       string   `json:",omitempty"`
-	VariationEmojiStyle      string   `json:",omitempty"`
-	Shortcodes               []string `json:",omitempty"`
-	ShortcodesVariationText  []string `json:",omitempty"`
-	ShortcodesVariationEmoji []string `json:",omitempty"`
+	Code                 rune
+	Name                 string
+	Emoji                bool   `json:",omitempty"`
+	EmojiPresentation    bool   `json:"Emoji_Presentation,omitempty"`
+	EmojiModifier        bool   `json:"Emoji_Modifier,omitempty"`
+	EmojiModifierBase    bool   `json:"Emoji_Modifier_Base,omitempty"`
+	EmojiComponent       bool   `json:"Emoji_Component,omitempty"`
+	ExtendedPictographic bool   `json:"Extended_Pictographic,omitempty"`
+	RegionalIndicator    bool   `json:"Regional_Indicator,omitempty"`
+	VariationTextStyle   string `json:",omitempty"`
+	VariationEmojiStyle  string `json:",omitempty"`
 }
 
 // EncodeEmojiData outputs []EmojiData data with JSON format.

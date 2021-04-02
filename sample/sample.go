@@ -1,3 +1,5 @@
+// +build run
+
 package main
 
 import (
@@ -17,7 +19,7 @@ func dump(s string) string {
 }
 
 func main() {
-	list, err := emojis.NewEmojiList()
+	list, err := emojis.NewEmojiSequenceList()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 	}
@@ -28,6 +30,6 @@ func main() {
 		for _, c := range ec.Shortcodes {
 			bldr.WriteString(fmt.Sprintf(" `%s`", c))
 		}
-		fmt.Printf("| <abbr class='emoji-chars' title='%[3]v'>%[1]v</abbr> | %v |  %v | %v |%s |\n", ec.Code, dump(ec.Code), ec.Name, ec.SequenceType, bldr.String())
+		fmt.Printf("| <abbr class='emoji-chars' title='%[3]v'>%[1]v</abbr> | %v |  %v | %v |%s |\n", ec.Sequence, dump(ec.Sequence), ec.Name, ec.SequenceType, bldr.String())
 	}
 }
