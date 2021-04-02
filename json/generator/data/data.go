@@ -7,10 +7,8 @@ import (
 	"strconv"
 	"strings"
 
-	emj "github.com/kyokomi/emoji/v2"
 	"github.com/spiegel-im-spiegel/emojis/json"
 	"github.com/spiegel-im-spiegel/emojis/json/generator/unames"
-	"github.com/spiegel-im-spiegel/emojis/types"
 	"github.com/spiegel-im-spiegel/errs"
 	"github.com/spiegel-im-spiegel/fetch"
 )
@@ -61,9 +59,8 @@ func parseData(list map[rune]json.EmojiData) (map[rune]json.EmojiData, error) {
 				ed, ok := list[r]
 				if !ok {
 					ed = json.EmojiData{
-						Code:       r,
-						Name:       name,
-						Shortcodes: emj.RevCodeMap()[string([]rune{r})],
+						Code: r,
+						Name: name,
 					}
 				}
 				list[r] = setProperty(ed, flds[1])
@@ -102,28 +99,31 @@ func getRuneRange(s string) (rune, rune, error) {
 }
 
 func setProperty(e json.EmojiData, s string) json.EmojiData {
-	var prop types.SequencesType
+	if 0x1F1E6 <= e.Code && e.Code <= 0x1F1FF {
+		e.RegionalIndicator = true
+	}
+	var prop EmojiProperty
 	if strings.Contains(s, "#") {
 		flds := strings.Split(s, "#")
 		if len(flds) < 1 {
 			return e
 		}
-		prop = types.GetSequenceType(strings.TrimSpace(flds[0]))
+		prop = GetEmojiProperty(strings.TrimSpace(flds[0]))
 	} else {
-		prop = types.GetSequenceType(strings.TrimSpace(s))
+		prop = GetEmojiProperty(strings.TrimSpace(s))
 	}
 	switch prop {
-	case types.TypeEmojiCharacter:
+	case PropEmojiCharacter:
 		e.Emoji = true
-	case types.TypeEmojiPresentation:
+	case PropEmojiPresentation:
 		e.EmojiPresentation = true
-	case types.TypeEmojiModifier:
+	case PropEmojiModifier:
 		e.EmojiModifier = true
-	case types.TypeEmojiModifierBase:
+	case PropEmojiModifierBase:
 		e.EmojiModifierBase = true
-	case types.TypeEmojiComponent:
+	case PropEmojiComponent:
 		e.EmojiComponent = true
-	case types.TypeExtendedPictographic:
+	case PropExtendedPictographic:
 		e.ExtendedPictographic = true
 	}
 	return e

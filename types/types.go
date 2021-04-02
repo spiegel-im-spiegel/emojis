@@ -15,29 +15,15 @@ const (
 	TypeRGIEmojiTagSequence
 	TypeRGIEmojiModifierSequence
 	TypeRGIEmojiZWJSequence
-	TypeEmojiCharacter
-	TypeEmojiPresentation
-	TypeEmojiPresentationSequence
-	TypeExtendedPictographic
-	TypeEmojiComponent
-	TypeEmojiModifier
-	TypeEmojiModifierBase
 )
 
 var sequencesTypeMap = map[SequencesType]string{
-	TypeBasicEmoji:                "Basic_Emoji",
-	TypeEmojiKeycapSequence:       "Emoji_Keycap_Sequence",
-	TypeRGIEmojiFlagSequence:      "RGI_Emoji_Flag_Sequence",
-	TypeRGIEmojiTagSequence:       "RGI_Emoji_Tag_Sequence",
-	TypeRGIEmojiModifierSequence:  "RGI_Emoji_Modifier_Sequence",
-	TypeRGIEmojiZWJSequence:       "RGI_Emoji_ZWJ_Sequence",
-	TypeEmojiCharacter:            "Emoji",
-	TypeEmojiPresentation:         "Emoji_Presentation",
-	TypeEmojiPresentationSequence: "Emoji_Presentation_Sequence",
-	TypeExtendedPictographic:      "Extended_Pictographic",
-	TypeEmojiComponent:            "Emoji_Component",
-	TypeEmojiModifier:             "Emoji_Modifier",
-	TypeEmojiModifierBase:         "Emoji_Modifier_Base",
+	TypeBasicEmoji:               "Basic_Emoji",
+	TypeEmojiKeycapSequence:      "Emoji_Keycap_Sequence",
+	TypeRGIEmojiFlagSequence:     "RGI_Emoji_Flag_Sequence",
+	TypeRGIEmojiTagSequence:      "RGI_Emoji_Tag_Sequence",
+	TypeRGIEmojiModifierSequence: "RGI_Emoji_Modifier_Sequence",
+	TypeRGIEmojiZWJSequence:      "RGI_Emoji_ZWJ_Sequence",
 }
 
 func GetSequenceType(s string) SequencesType {
