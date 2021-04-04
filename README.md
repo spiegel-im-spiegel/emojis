@@ -2,7 +2,7 @@
 
 [![check vulns](https://github.com/spiegel-im-spiegel/emojis/workflows/vulns/badge.svg)](https://github.com/spiegel-im-spiegel/emojis/actions)
 [![lint status](https://github.com/spiegel-im-spiegel/emojis/workflows/lint/badge.svg)](https://github.com/spiegel-im-spiegel/emojis/actions)
-[![GitHub license](https://img.shields.io/badge/license-Apache%202-blue.svg)](https://raw.githubusercontent.com/spiegel-im-spiegel/emojis/master/LICENSE)
+[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/spiegel-im-spiegel/emojis/master/LICENSE)
 [![GitHub release](https://img.shields.io/github/release/spiegel-im-spiegel/emojis.svg)](https://github.com/spiegel-im-spiegel/emojis/releases/latest)
 
 This package is required Go 1.16 or later.
